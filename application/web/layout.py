@@ -6,36 +6,34 @@ import requests
 
 URL = "http://tesla.iem.pw.edu.pl:9080/v2/monitor/"
 
+input_style = {"backgroundColor":"transparent", "borderRadius":"2rem", "textAlign": "center"}
 
 def generateNavbar():
     return dbc.NavbarSimple(brand="Medical Data Visualisation", sticky="top",)
 
 
 def generateBody():
-    return dbc.Container(
+    return dbc.Row(
         [
-            dbc.Row(
+            dbc.Col(
                 [
-                    dbc.Col(
-                        [
-                            html.H2("Controller", style={ 'textAlign': 'center', 'justify':"center"} ),
-                            dbc.Container(id="control-panel", children=generateControls()),
-                        ],
-                        lg=4,
+                    html.H2(
+                        "Controller", style={"textAlign": "center", "justify": "center"}
                     ),
-                    dbc.Col(
-                        [
-                            html.H2("Visualisation",  style={ 'textAlign': 'center', 'justify':"center"}),
-                            dbc.Container(
-                                id="data-panel", children=preparePanel(fetchData(1))
-                            ),
-                        ],
-                        lg=8,
-                    ),
+                    dbc.Container(id="control-panel", children=generateControls()),
                 ],
-                align="start",
-                justify="center",
-            )
+                lg=4,
+            ),
+            dbc.Col(
+                [
+                    html.H2(
+                        "Visualisation",
+                        style={"textAlign": "center", "justify": "center"},
+                    ),
+                    dbc.Container(id="data-panel", children=preparePanel(fetchData(1))),
+                ],
+                lg=8,
+            ),
         ],
         className="mt-4, h-100",
     )
@@ -52,12 +50,12 @@ def generateControls():
                                 id="patient-select",
                                 value=1,
                                 options=[
-                                    {"label": "Pacjent 1", "value": 1},
-                                    {"label": "Pacjent 2", "value": 2},
-                                    {"label": "Pacjent 3", "value": 3},
-                                    {"label": "Pacjent 4", "value": 4},
-                                    {"label": "Pacjent 5", "value": 5},
-                                    {"label": "Pacjent 6", "value": 6},
+                                    {"label": "Patient 1", "value": 1},
+                                    {"label": "Patient 2", "value": 2},
+                                    {"label": "Patient 3", "value": 3},
+                                    {"label": "Patient 4", "value": 4},
+                                    {"label": "Patient 5", "value": 5},
+                                    {"label": "Patient 6", "value": 6},
                                 ],
                             )
                         ],
@@ -69,21 +67,47 @@ def generateControls():
             ),
             dbc.Row(
                 [
-                    dbc.Button("Previous",color="secondary", id="prev-button", className="mr-4"),
-                    dbc.Button("Live",color="secondary", id="live-button", className="mr-4"),
-                    dbc.Button("Next",color="secondary", id="next-button"),
+                    dbc.Button(
+                        "Previous",
+                        color="secondary",
+                        id="prev-button",
+                        className="mr-4",
+                    ),
+                    dbc.Button("Next", color="secondary", id="next-button"),
                 ],
                 className="mt-2",
                 justify="center",
             ),
             dbc.Row(
                 [
-                    dbc.Button("Previous Anomaly",color="danger", id="prev-anomaly-button", className="mr-2"),
-                    dbc.Button("Next Anomaly",color="danger", id="next-anomaly-button" ),
+                    dbc.Button(
+                        "Stop", color="secondary", id="stop-button", className="mr-4"
+                    ),
+                    dbc.Button(
+                        "Live", color="secondary", id="live-button"
+                    ),
                 ],
                 className="mt-2",
                 justify="center",
-            )
+            ),
+            dbc.Row(
+                [
+                    dbc.Button(
+                        "Previous Anomaly",
+                        color="danger",
+                        id="prev-anomaly-button",
+                        className="mr-2",
+                    ),
+                    dbc.Button(
+                        "Next Anomaly", color="danger", id="next-anomaly-button"
+                    ),
+                ],
+                className="mt-2",
+                justify="center",
+            ),
+            dbc.Row([html.H5("Live update of patients data.", id="current-action")],
+                className="mt-2",
+                justify="center",),
         ]
     )
 
@@ -104,25 +128,35 @@ def preparePanel(json):
                             + json.get("firstname")
                             + " "
                             + json.get("lastname")
+                            + " , Id: "
+                            + str(json.get("id"))
                         ),
                         lg=10,
                     ),
-                    # dbc.Col(html.H4("Id: " + str(json.get("id"))),lg=4),
                 ],
                 className="md-4",
                 align="center",
                 justify="center",
             ),
-            updateData(json.get("trace").get("sensors"))
+            updateData(json.get("trace").get("sensors")),
         ],
-        className="h-100, mh-100"
+        className="h-100, mh-100",
     )
 
 
 def updateData(sensors):
     return dbc.Container(
-            html.Div(
-                [
+        html.Div(
+            [
+                dbc.Row(
+                    className="mt-4",
+                ),
+                dbc.Row(
+                    className="mt-4",
+                ),
+                dbc.Row(
+                    className="mt-4",
+                ),
                 dbc.Row(
                     [
                         dbc.Col(
@@ -131,9 +165,10 @@ def updateData(sensors):
                                 id="sensor-0",
                                 value=sensors[0].get("value"),
                                 invalid=sensors[0].get("anomaly") == "true",
-                                bs_size="sm",
+                                bs_size="lg",
+                                style=input_style
                             ),
-                            width={"size": 2, "order": 4, "offset": 3},
+                            width={"size": 2, "order": 4, "offset": 2},
                         ),
                         dbc.Col(
                             dbc.Input(
@@ -141,12 +176,13 @@ def updateData(sensors):
                                 id="sensor-3",
                                 value=sensors[3].get("value"),
                                 invalid=sensors[3].get("anomaly") == "true",
-                                bs_size="sm",
+                                bs_size="lg",
+                                style=input_style
                             ),
-                            width={"size": 2, "order": 8, "offset": 2},
+                            width={"size": 2, "order": 8, "offset": 3},
                         ),
                     ],
-                    className="mt-4",
+                    className="ml-5 mt-5",
                 ),
                 dbc.Row(
                     [
@@ -156,9 +192,10 @@ def updateData(sensors):
                                 id="sensor-1",
                                 value=sensors[1].get("value"),
                                 invalid=sensors[4].get("anomaly") == "true",
-                                bs_size="sm",
+                                bs_size="lg",
+                                style=input_style
                             ),
-                            width={"size": 2, "order": 2, "offset": 2},
+                            width={"size": 2, "order": 1, "offset": 1},
                         ),
                         dbc.Col(
                             dbc.Input(
@@ -166,12 +203,21 @@ def updateData(sensors):
                                 id="sensor-4",
                                 value=sensors[4].get("value"),
                                 invalid=sensors[4].get("anomaly") == "true",
-                                bs_size="sm",
+                                bs_size="lg",
+                                style=input_style
                             ),
-                            width={"size": 2, "order": 8, "offset": 4},
+                            width={"size": 2, "order": 10, "offset": 6},
                         ),
                     ],
-                    className="mt-4",
+                ),
+                dbc.Row(
+                    className="mt-5",
+                ),
+                dbc.Row(
+                    className="mt-5",
+                ),
+                dbc.Row(
+                    className="mt-5",
                 ),
                 dbc.Row(
                     [
@@ -181,7 +227,8 @@ def updateData(sensors):
                                 id="sensor-2",
                                 value=sensors[2].get("value"),
                                 invalid=sensors[2].get("anomaly") == "true",
-                                bs_size="sm",
+                                bs_size="lg",
+                                style=input_style
                             ),
                             width={"size": 2, "order": 4, "offset": 3},
                         ),
@@ -191,16 +238,24 @@ def updateData(sensors):
                                 id="sensor-5",
                                 value=sensors[5].get("value"),
                                 invalid=sensors[5].get("anomaly") == "true",
-                                bs_size="sm",
+                                bs_size="lg",
+                                style=input_style
                             ),
                             width={"size": 2, "order": 8, "offset": 2},
                         ),
                     ],
-                    className="mt-4"
+                    className="mb-4",
                 ),
-                ],
-                style={'backgroundImage': 'url(/assets/feets.jpg)', 'backgroundSize': '100% 100%'},
-                className="h-100, mh-100, mt-10" 
-            ),
-            className="h-100, mh-100, mt-10"
+                dbc.Row(
+                    className="mt-1",
+                ),
+            ],
+            style={
+                "backgroundImage": "url(/assets/feets4.jpg)",
+                "backgroundSize": "100% 100%",
+            },
+            className="h-100, mh-100, mt-10",
+        ),
+        className="h-100, mh-100, mt-10",
     )
+
