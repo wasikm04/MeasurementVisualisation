@@ -14,7 +14,7 @@ app.layout = dbc.Container(
         generateNavbar(),
         generateBody(),
         dcc.Interval(
-            id="interval-component", interval=1 * 1000, n_intervals=0  
+            id="interval-component", interval=1 * 1500, n_intervals=0  
         ),
     ],
     className="h-100",
