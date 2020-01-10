@@ -129,3 +129,5 @@ application/web/.vscode/launch.json
 application/web/.vscode/settings.json
 application/web/bash.exe.stackdump
 keys/
+
+.idea/*

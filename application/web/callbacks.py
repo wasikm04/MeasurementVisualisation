@@ -1,4 +1,6 @@
 from dash.dependencies import Input, Output, State
+
+from firebase_db import save_patient_data
 from layout import *
 import json
 import requests
@@ -29,6 +31,7 @@ def register_callbacks(app):
     )
     def updateVisualisationLive(n_intervals, patient):
         data = json.dumps(fetchData(patient))
+        save_patient_data(patient, data)
         return data
 
     @app.callback(
