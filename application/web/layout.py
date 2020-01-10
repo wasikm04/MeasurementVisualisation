@@ -3,6 +3,9 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 import requests
+import time
+
+from firebase_db import save_patient_data, delete_patient_data_older_than_10_min
 
 URL = "http://tesla.iem.pw.edu.pl:9080/v2/monitor/"
 
@@ -115,8 +118,11 @@ def generateControls():
 
 
 def fetchData(patientId):
-    data = requests.get(URL + str(patientId))
-    return data.json()
+    data = requests.get(URL + str(patientId)).json()
+    data['timestamp'] = time.time()
+    save_patient_data(patientId, data)
+    #append_patients_data_up_to_10_min(patientId, data)
+    return data
 
 
 def preparePanel(json):
