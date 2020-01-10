@@ -28,14 +28,4 @@ app.layout = dbc.Container(
 register_callbacks(app)
 
 if __name__ == "__main__":
-    #print('######################################')
-    #database = firestore.client()
-    #patient_col_ref = database.collection('patients')  # col_ref is CollectionReference
-    #results = patient_col_ref.get()
-    # results = col_ref.where('name', '==', 'Pepa').get()  # one way to query
-    # results = col_ref.order_by('date', direction='DESCENDING').limit(
-    #     1).get()  # another way - get the last document by date
-    #for item in results:
-    #    print(item.to_dict())
-    #    print(item.id)
     app.run_server(debug=True)

@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 import requests
 import time
 
-from firebase_db import save_patient_data, delete_patient_data_older_than_10_min
+from firebase_db import save_patient_data
 
 URL = "http://tesla.iem.pw.edu.pl:9080/v2/monitor/"
 
@@ -121,7 +121,6 @@ def fetchData(patientId):
     data = requests.get(URL + str(patientId)).json()
     data['timestamp'] = time.time()
     save_patient_data(patientId, data)
-    #append_patients_data_up_to_10_min(patientId, data)
     return data
 
 
