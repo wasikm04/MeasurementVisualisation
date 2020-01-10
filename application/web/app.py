@@ -11,6 +11,7 @@ app.config.suppress_callback_exceptions = True
 
 app.layout = dbc.Container(
     children=[
+        dcc.Store(id='store', storage_type='session'),
         generateNavbar(),
         generateBody(),
         dcc.Interval(

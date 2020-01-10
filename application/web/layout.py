@@ -32,7 +32,7 @@ def generateBody():
                     ),
                     dbc.Container(id="data-panel", children=preparePanel(fetchData(1))),
                     html.Div(id='intermediate-value1', style={'display': 'none'}),
-                    html.Div(id='intermediate-value2', style={'display': 'none'})
+                    html.Div(id='intermediate-value2', style={'display': 'none'}),
                 ],
                 lg=8,
             ),
