@@ -22,6 +22,9 @@ app.layout = dbc.Container(
         dcc.Interval(
             id="interval-component", interval=1 * 1500, n_intervals=0  
         ),
+        dcc.Interval(
+            id="fetch-data", interval=1 * 1500, n_intervals=0  
+        ),
     ],
     className="h-100",
     fluid=True

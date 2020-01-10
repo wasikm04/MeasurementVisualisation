@@ -34,8 +34,9 @@ def generateBody():
                         style={"textAlign": "center", "justify": "center"},
                     ),
                     dbc.Container(id="data-panel", children=preparePanel(fetchData(1))),
-                    html.Div(id='intermediate-value1', style={'display': 'none'}),
-                    html.Div(id='intermediate-value2', style={'display': 'none'}),
+                    html.Div(id='intermediate-valueLive', style={'display': 'none'}),
+                    html.Div(id='intermediate-valueButtons', style={'display': 'none'}),
+                    html.Div(id='intermediate-valueLast', style={'display': 'none'}),
                 ],
                 lg=8,
             ),
@@ -136,8 +137,10 @@ def preparePanel(json):
                             + json.get("firstname")
                             + " "
                             + json.get("lastname")
-                            + " , Id: "
-                            + str(json.get("id"))
+                        ),
+                        html.H5(
+                            "Date: "
+                            + datetime.timestamp(json.get("timestamp"))
                         ),
                         lg=10,
                     ),
