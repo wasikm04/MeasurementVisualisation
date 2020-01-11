@@ -107,7 +107,7 @@ def register_callbacks(app):
                 name="Sensor " + str(x),
                 x=xList,
                 y=yList[x],
-                line=dict(shape="line", color=colors[x]), 
+                line=dict(shape="spline", color=colors[x]), 
                 marker=dict(symbol="diamond") #, line={"color": colors[x]})
             )
             data.append(line)
@@ -169,7 +169,7 @@ def register_callbacks(app):
 
     mapbox_access_token = "pk.eyJ1IjoiamFja2x1byIsImEiOiJjajNlcnh3MzEwMHZtMzNueGw3NWw5ZXF5In0.fk8k06T96Ml9CLGgKmk81w"
     layout = dict(
-        autosize=False,
+        autosize=True,
         automargin=True,
         margin=dict(l=30, r=30, b=20, t=40),
         hovermode="closest",
