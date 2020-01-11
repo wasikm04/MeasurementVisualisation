@@ -3,10 +3,10 @@ import time
 from firebase_admin import firestore
 
 
-def save_patient_data(patient_id, data, delete_older_than_10=True):
+def save_patient_data(data, delete_older_than_10=True):
     database = firestore.client()
     database.collection('patients').add(data)
-    if delete_older_than_10: delete_patient_data_older_than_10_min(patient_id)
+    if delete_older_than_10: delete_patient_data_older_than_10_min(data['id'])
 
 
 def save_many_patients_data(datas, delete_older_than_10=True):

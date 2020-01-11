@@ -53,6 +53,10 @@ def register_callbacks(app):
         print("\n\n\n")
         data4 = get_last_patient_document(2)
         print("\n\n\n")
+        print(data4)
+        print('########################')
+        print(patient)
+        print(get_last_patient_document(int(patient)))
         return json.dumps(data[0])
 
     # @app.callback(
