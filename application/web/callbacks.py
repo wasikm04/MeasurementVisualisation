@@ -1,6 +1,6 @@
 from dash.dependencies import Input, Output, State
 
-from firebase_db import save_patient_data
+from firebase_db import save_patient_data, get_next_data, get_previous_data, get_next_anomaly, get_previous_anomaly
 from layout import *
 import json
 import requests
@@ -96,17 +96,21 @@ def register_callbacks(app):
 def prepareOutputBasedOnButton(button_id, patient, data):
     #użycie id i timestamp z data do pobrania odpowiedniego dokumentu
     disable = True
-    if button_id == "prev-button":
+    if(button_id == "prev-button"):
+        # data = get_prevoius_data(patient, time)
         message = "Visualisation shows previously fetched data"
-    elif button_id == "next-button":
+    elif(button_id == "next-button"):
+        # data = get_next_data(patient, time)
         message = "Visualisation shows next part of previously fetched data"
     elif button_id == "stop-button":
         message = "Visualisation is not updating, click 'Live'"
-    elif button_id == "next-anomaly-button":
+    elif(button_id == "next-anomaly-button"):
+        # data = get_next_anomaly(patient, time)
         message = "Visualisation shows next saved data with anomaly"
-    elif button_id == "prev-anomaly-button":
-        message = "Visualisation shows previous saved data with anomaly"
-    elif button_id == "live-button":
+    elif(button_id == "prev-anomaly-button"):
+        # data = get_previous_anomaly(patient, time)
+        message = "Visualisation shows previous saved data with anomaly"    
+    elif(button_id == "live-button"):
         message = "Visualisation shows live updated data"
         disable = False
     else:
