@@ -21,13 +21,13 @@ app.layout = dbc.Container(
         generateNavbar(),
         generateBody(),
         dcc.Interval(
-            id="interval-component", interval=1 * 3000, n_intervals=0  
+            id="interval-component", interval=1 * 2000, n_intervals=0  
         ),
         dcc.Interval(
-            id="fetch-data", interval=1 * 3000, n_intervals=0  
+            id="fetch-data", interval=1 * 10000500, n_intervals=0  
         ),
     ],
-    className="pretty_container, h-100",
+    className="h-100",
     fluid=True
 )
 register_callbacks(app)

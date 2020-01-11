@@ -9,7 +9,7 @@ def save_patient_data(patient_id, data, delete_older_than_10=True):
     if delete_older_than_10: delete_patient_data_older_than_10_min(patient_id)
 
 
-def save_many_patients_data(datas, delete_older_than_10=True):
+def save_many_patients_data(datas, delete_older_than_10=False):
     database = firestore.client()
     for data in datas:
         database.collection('patients').add(data)
@@ -61,7 +61,7 @@ def get_last_patient_document(patient_id):
     docs_obj = []
     for doc in docs:
         docs_obj.append(doc.to_dict())
-    return docs_obj
+    return docs_obj[0]
 
 
 def get_next_data(patient_id, timestamp):
@@ -83,7 +83,7 @@ def get_previous_data(patient_id, timestamp):
     docs_obj = []
     for doc in docs:
         docs_obj.append(doc.to_dict())
-    return docs_obj[0]
+    return docs_obj
 
 
 def get_next_anomaly(patient_id, timeout):

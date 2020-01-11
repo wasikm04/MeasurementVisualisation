@@ -1,12 +1,15 @@
 from dash.dependencies import Input, Output, State
 from firebase_db import save_patient_data, get_next_data, get_previous_data, get_next_anomaly, get_previous_anomaly,get_all_patient_documents, get_last_patient_document, save_many_patients_data
 from layout import *
+from helper import *
 import json
 import requests
 import dash
 import pandas as pd
+import plotly
+from datetime import datetime
+import plotly.graph_objs as go
 
-#className={pretty_container}
 def register_callbacks(app):
 
     @app.callback(Output("placeholder", "children"),
@@ -46,33 +49,69 @@ def register_callbacks(app):
          Input("patient-select", "value")],
     )
     def updateVisualisationLive(n_intervals, patient):
-        data = get_last_patient_document(patient)
-        data3 = get_last_patient_document(1)
-        print("\n\n\n")
-        print(data3)
-        print("\n\n\n")
-        data4 = get_last_patient_document(2)
-        print("\n\n\n")
-        return json.dumps(data[0])
+        #data = get_last_patient_document(int(patient)) pobieranie z bazy zakomentowane
+        data = fetchData(patient)
+        print(str(datetime.fromtimestamp(data.get("timestamp"))))
+       # return json.dumps(data[0])
+        return json.dumps(data)
 
-    # @app.callback(
-    #     [Output("graph", "figure"),
-    #      Output("store", "data")],
-    #     [Input("intermediate-valueLive", "children"),
-    #      Input("patient-select", "value")],
-    #     [State("store", "data")],
-    # )
-    # def updateGraph(patient, selectedPatient, data):
-    #     data = data or {1: [], 2: [], 3: [], 4: [], 5: [], 6: []}
-    #     newList = data[selectedPatient]
-    #     if (len(listLen) >= 20):
-    #         newList = newList.pop(0)
-    #     newList = newList.append(json.loads(patient))
-    #     data[selectedPatient] = newList
-    #     return composeGraph(data), data
-    #
-    # def composeGraph(dataList):
-    #     return None
+    @app.callback(
+        [Output("graph", "figure"),
+         Output("store", "data")],
+        [Input("intermediate-valueLive", "children"),
+         Input("patient-select", "value")],
+        [State("store", "data")],
+    )
+    def updateGraph(patient, selectedPatient, data):
+        data = data or {'1': [], '2': [], '3': [], '4': [], '5': [], '6': []}
+        newList = data[str(selectedPatient)]
+        if (len(newList) >= 6):
+            newList.pop(0)
+        newList.append(json.loads(patient))
+        data[str(selectedPatient)] = newList
+        return composeGraph(newList), data
+    
+    def composeGraph(dataList):
+        layout_graph = layout
+        xList, yList = produceData(dataList)
+        data = prepareGraphData(xList, yList)
+        
+        layout_graph["xaxis"] = dict(range=[min(xList),max(xList)])
+        layout_graph["yaxis"] = dict(range=[min(min(yList))-30,max(max(yList))+30])
+        layout_graph["transition"] = {
+               'duration': 500,
+               'easing': 'linear-in-out',
+               "ordering": 'traces first'
+           }
+        # layout_graph = go.Layout(xaxis = dict(range=[min(xList),max(xList)]),
+        #     yaxis = dict(range=[min(min(yList))-30,max(max(yList))+30]))
+        return {'data': data,'layout' : layout_graph}
+
+    def produceData(dataList):
+        xList = []
+        tmp = dict([(0,[]),(1,[]),(2,[]),(3,[]),(4,[]),(5,[])])
+        for obj in dataList:
+            xList.append(str(datetime.fromtimestamp(obj.get("timestamp"))).split(" ")[1].split(".")[0])
+            data = obj.get("trace").get("sensors")
+            for val in data:
+                tmp[val.get("id")].append(val.get("value"))
+
+        return xList, [tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5]]
+
+    def prepareGraphData(xList, yList):
+        data = []
+        for x in range(6):
+            line = dict(
+                type="scatter",
+                mode="lines+markers",
+                name="Sensor " + str(x),
+                x=xList,
+                y=yList[x],
+                line=dict(shape="line", color=colors[x]), 
+                marker=dict(symbol="diamond") #, line={"color": colors[x]})
+            )
+            data.append(line)
+        return data    
 
     @app.callback(
         [
@@ -96,32 +135,54 @@ def register_callbacks(app):
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
         if data != None:
             data = json.loads(data)
-        return prepareOutputBasedOnButton(button_id, patient, data)
-
+        else:
+            button_id = "live-button"    
+        return prepareOutputBasedOnButton(button_id, int(patient), data)
 
 
     def prepareOutputBasedOnButton(button_id, patientId, patientData):
-        #użycie patientDd i timestamp z patientData do pobrania odpowiedniego dokumentu
         disable = True
+        data = {}
         if(button_id == "prev-button"):
-            # data = get_prevoius_data(patient, time)
+            data = get_previous_data(patientId, patientData.get("timestamp"))[0]
             message = "Visualisation shows previously fetched data"
         elif(button_id == "next-button"):
-            # data = get_next_data(patient, time)
+            data = get_next_data(patientId, patientData.get("timestamp"))[0]
             message = "Visualisation shows next part of previously fetched data"
         elif button_id == "stop-button":
             message = "Visualisation is not updating, click 'Live'"
         elif(button_id == "next-anomaly-button"):
-            # data = get_next_anomaly(patient, time)
+            data = get_next_anomaly(patientId, patientData.get("timestamp"))
             message = "Visualisation shows next saved data with anomaly"
         elif(button_id == "prev-anomaly-button"):
-            # data = get_previous_anomaly(patient, time)
+            data = get_previous_anomaly(patientId, patientData.get("timestamp"))
             message = "Visualisation shows previous saved data with anomaly"    
         elif(button_id == "live-button"):
             message = "Visualisation shows live updated data"
             disable = False
-        else:
-            disable = False
 
-        return message, disable, json.dumps(patientData)
+        if data == {} or data == []:
+            data = patientData
 
+        return message, disable, json.dumps(data)
+
+
+    mapbox_access_token = "pk.eyJ1IjoiamFja2x1byIsImEiOiJjajNlcnh3MzEwMHZtMzNueGw3NWw5ZXF5In0.fk8k06T96Ml9CLGgKmk81w"
+    layout = dict(
+        autosize=False,
+        automargin=True,
+        margin=dict(l=30, r=30, b=20, t=40),
+        hovermode="closest",
+        plot_bgcolor="#F9F9F9",
+        paper_bgcolor="#F9F9F9",
+        legend=dict(font=dict(size=13), orientation="h"),
+        title="Pressure Overview",
+        #  mapbox=dict(
+        #     accesstoken=mapbox_access_token,
+        #      style="light",
+        #      center=dict(lon=-78.05, lat=42.54),
+        #      zoom=7,
+        #  ),
+    )
+
+    colors = dict([(0,"#59C3C3"),(1,"#08ffff"),(2,"#626666"),(3,"#82e81c"),(4,"#70a13f"),(5,"#518c15")])
