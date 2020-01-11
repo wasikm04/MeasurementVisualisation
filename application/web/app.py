@@ -1,13 +1,14 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from callbacks import *
 import dash_bootstrap_components as dbc
-from layout import *
 import firebase_admin
 from firebase_admin import db, credentials, firestore
+from callbacks import *
+from layout import *
+import os
 
-cred = credentials.Certificate("/keys/measurementvisualisation-firebase-adminsdk-t9b3y-97539f3cd1.json")
+cred = credentials.Certificate(os.path.dirname(os.path.abspath(__file__)) + "/keys/measurementvisualisation-firebase-adminsdk-t9b3y-97539f3cd1.json")
 firebase_admin.initialize_app(cred, {'databaseURL': 'https://measurementvisualisation.firebaseio.com'})
 
 external_stylesheets = [dbc.themes.BOOTSTRAP]
@@ -20,13 +21,13 @@ app.layout = dbc.Container(
         generateNavbar(),
         generateBody(),
         dcc.Interval(
-            id="interval-component", interval=1 * 1500, n_intervals=0  
+            id="interval-component", interval=1 * 3000, n_intervals=0  
         ),
         dcc.Interval(
-            id="fetch-data", interval=1 * 1500, n_intervals=0  
+            id="fetch-data", interval=1 * 3000, n_intervals=0  
         ),
     ],
-    className="h-100",
+    className="pretty_container, h-100",
     fluid=True
 )
 register_callbacks(app)

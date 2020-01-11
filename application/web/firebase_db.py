@@ -83,7 +83,7 @@ def get_previous_data(patient_id, timestamp):
     docs_obj = []
     for doc in docs:
         docs_obj.append(doc.to_dict())
-    return docs_obj
+    return docs_obj[0]
 
 
 def get_next_anomaly(patient_id, timeout):

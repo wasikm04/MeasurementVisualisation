@@ -3,6 +3,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 import requests
+from datetime import datetime
 import time
 
 from firebase_db import save_patient_data
@@ -37,6 +38,7 @@ def generateBody():
                     html.Div(id='intermediate-valueLive', style={'display': 'none'}),
                     html.Div(id='intermediate-valueButtons', style={'display': 'none'}),
                     html.Div(id='intermediate-valueLast', style={'display': 'none'}),
+                    html.Div(id='placeholder', style={'display': 'none'}),
                 ],
                 lg=8,
             ),
@@ -121,7 +123,7 @@ def generateControls():
 def fetchData(patientId):
     data = requests.get(URL + str(patientId)).json()
     data['timestamp'] = time.time()
-    save_patient_data(patientId, data)
+    data['id'] = patientId
     return data
 
 
@@ -136,10 +138,6 @@ def preparePanel(json):
                             + json.get("firstname")
                             + " "
                             + json.get("lastname")
-                        ),
-                        html.H5(
-                            "Date: "
-                            + datetime.timestamp(json.get("timestamp"))
                         ),
                         lg=10,
                     ),

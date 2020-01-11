@@ -1,6 +1,5 @@
 from dash.dependencies import Input, Output, State
-
-from firebase_db import save_patient_data, get_next_data, get_previous_data, get_next_anomaly, get_previous_anomaly
+from firebase_db import save_patient_data, get_next_data, get_previous_data, get_next_anomaly, get_previous_anomaly,get_all_patient_documents, get_last_patient_document, save_many_patients_data
 from layout import *
 import json
 import requests
@@ -10,12 +9,16 @@ import pandas as pd
 #className={pretty_container}
 def register_callbacks(app):
 
-    @app.callback([Input("fetch-data", "n_intervals")])
+    @app.callback(Output("placeholder", "children"),
+                [Input("fetch-data", "n_intervals")])
     def download(value):
-        data = json.dumps(fetchData(patient))
-        #6 pobrań i zapis
-        save_patient_data(patient, data)
-        
+        data = []
+        for i in range(1,7):
+            patient = fetchData(i)
+            data.append(patient)
+        save_many_patients_data(data)
+        return ""
+
 
     @app.callback(
         [
@@ -44,30 +47,32 @@ def register_callbacks(app):
     )
     def updateVisualisationLive(n_intervals, patient):
         data = get_last_patient_document(patient)
-        return data
+        data3 = get_last_patient_document(1)
+        print("\n\n\n")
+        print(data3)
+        print("\n\n\n")
+        data4 = get_last_patient_document(2)
+        print("\n\n\n")
+        return json.dumps(data[0])
 
-
-    @app.callback(
-        [Output("graph", "figure"),
-         Output("store", "data")],
-        [Input("intermediate-valueLive", "children"),
-         Input("patient-select", "value")],
-        [State("store", "data")],
-    )
-    def updateGraph(patient, selectedPatient, data):
-        data = data or {1: [], 2: [], 3: [], 4: [], 5: [], 6: []}
-        newList = data[selectedPatient]
-        if (len(listLen) >= 20):
-            newList = newList.pop(0)
-        newList = newList.append(json.loads(patient))
-        data[selectedPatient] = newList
-        # odjąć pierwszy i dodać nowego pateient do data odpowiedniego
-        return composeGraph(data), data
-
-
-    def composeGraph(dataList):
-        return None
-
+    # @app.callback(
+    #     [Output("graph", "figure"),
+    #      Output("store", "data")],
+    #     [Input("intermediate-valueLive", "children"),
+    #      Input("patient-select", "value")],
+    #     [State("store", "data")],
+    # )
+    # def updateGraph(patient, selectedPatient, data):
+    #     data = data or {1: [], 2: [], 3: [], 4: [], 5: [], 6: []}
+    #     newList = data[selectedPatient]
+    #     if (len(listLen) >= 20):
+    #         newList = newList.pop(0)
+    #     newList = newList.append(json.loads(patient))
+    #     data[selectedPatient] = newList
+    #     return composeGraph(data), data
+    #
+    # def composeGraph(dataList):
+    #     return None
 
     @app.callback(
         [
@@ -89,32 +94,34 @@ def register_callbacks(app):
     def manageButtons(prev, next, live, stop, next_anomaly, prev_anomaly, patient, data):
         ctx = dash.callback_context
         button_id = ctx.triggered[0]["prop_id"].split(".")[0]
-        data = json.loads(data)
+        if data != None:
+            data = json.loads(data)
         return prepareOutputBasedOnButton(button_id, patient, data)
 
 
-def prepareOutputBasedOnButton(button_id, patient, data):
-    #użycie id i timestamp z data do pobrania odpowiedniego dokumentu
-    disable = True
-    if(button_id == "prev-button"):
-        # data = get_prevoius_data(patient, time)
-        message = "Visualisation shows previously fetched data"
-    elif(button_id == "next-button"):
-        # data = get_next_data(patient, time)
-        message = "Visualisation shows next part of previously fetched data"
-    elif button_id == "stop-button":
-        message = "Visualisation is not updating, click 'Live'"
-    elif(button_id == "next-anomaly-button"):
-        # data = get_next_anomaly(patient, time)
-        message = "Visualisation shows next saved data with anomaly"
-    elif(button_id == "prev-anomaly-button"):
-        # data = get_previous_anomaly(patient, time)
-        message = "Visualisation shows previous saved data with anomaly"    
-    elif(button_id == "live-button"):
-        message = "Visualisation shows live updated data"
-        disable = False
-    else:
-        disable = False
 
-    return message, disable, data
+    def prepareOutputBasedOnButton(button_id, patientId, patientData):
+        #użycie patientDd i timestamp z patientData do pobrania odpowiedniego dokumentu
+        disable = True
+        if(button_id == "prev-button"):
+            # data = get_prevoius_data(patient, time)
+            message = "Visualisation shows previously fetched data"
+        elif(button_id == "next-button"):
+            # data = get_next_data(patient, time)
+            message = "Visualisation shows next part of previously fetched data"
+        elif button_id == "stop-button":
+            message = "Visualisation is not updating, click 'Live'"
+        elif(button_id == "next-anomaly-button"):
+            # data = get_next_anomaly(patient, time)
+            message = "Visualisation shows next saved data with anomaly"
+        elif(button_id == "prev-anomaly-button"):
+            # data = get_previous_anomaly(patient, time)
+            message = "Visualisation shows previous saved data with anomaly"    
+        elif(button_id == "live-button"):
+            message = "Visualisation shows live updated data"
+            disable = False
+        else:
+            disable = False
+
+        return message, disable, json.dumps(patientData)
 
