@@ -8,7 +8,6 @@ from helper import *
 from firebase_db import save_patient_data
 
 
-
 input_style = {
     "backgroundColor": "transparent",
     "borderRadius": "2rem",
@@ -36,7 +35,7 @@ def generateBody():
                             ),
                         ],
                         lg=3,
-                        className="pretty_container"
+                        className="pretty_container",
                     ),
                     dbc.Col(
                         [
@@ -58,16 +57,23 @@ def generateBody():
                                 id="intermediate-valueLast", style={"display": "none"}
                             ),
                             html.Div(id="placeholder", style={"display": "none"}),
+                            html.Div(id="intermediate-valueSlider", style={"display": "none"}),
                         ],
-                        lg=8, 
-                        className="pretty_container"
+                        lg=8,
+                        className="pretty_container",
                     ),
                 ],
                 className="mini_container mt-4, h-100",
             ),
-            html.Div(
-                [dcc.Graph(id="graph")], className="mini_container"
-            )
+            html.Div([dcc.Graph(id="graph"),
+                    dbc.Button(
+                        "Clear",
+                        color="secondary",
+                        id="clear-button",
+                        className="mt-1",
+                    ),
+                    ],
+                     className="mini_container"),
         ]
     )
 
@@ -137,8 +143,21 @@ def generateControls():
                 justify="center",
             ),
             dbc.Row(
-                [html.H5("Live update of patients data.", id="current-action")],
+                [html.H6("Live update of patients data.", id="current-action")],
                 className="mt-2",
+                justify="center",
+            ),
+            html.Div(
+                [dcc.Slider(id="timestamp-slider", min=0, max=10, step=0.1, value=10, 
+                marks={
+                    0: {'label': '-10 min', 'style': {'color': '#77b0b1'}},
+                    10: {'label': 'Live', 'style': {'color': '#f50'}}
+                })],
+                className="mt-4",
+            ),
+             dbc.Row(
+                [html.H6("", id="text-slider")],
+                className="mt-4",
                 justify="center",
             ),
         ]
@@ -151,13 +170,13 @@ def preparePanel(json):
             dbc.Row(
                 [
                     html.H5(
-                            "Patient: "
-                            + json.get("firstname")
-                            + " "
-                            + json.get("lastname")
-                            + "   Date: " 
-                            + str(datetime.fromtimestamp(json.get("timestamp"))).split(".")[0]
-                        )
+                        "Patient: "
+                        + json.get("firstname")
+                        + " "
+                        + json.get("lastname")
+                        + "   Date: "
+                        + str(datetime.fromtimestamp(json.get("timestamp"))).split(".")[0]
+                    )
                 ],
                 className="md-4",
                 align="center",

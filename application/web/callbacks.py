@@ -31,15 +31,18 @@ def register_callbacks(app):
         [
             Input("intermediate-valueLive", "children"),
             Input("intermediate-valueButtons", "children"),
+            Input("intermediate-valueSlider", "children"),
         ],
     )
-    def updateVisualisation(value1, value2):
+    def updateVisualisation(value1, value2, value3):
         ctx = dash.callback_context
         input_id = ctx.triggered[0]["prop_id"].split(".")[0]
         if input_id == "intermediate-valueLive":
             data = json.loads(value1)
         elif input_id == "intermediate-valueButtons":
             data = json.loads(value2)
+        elif input_id == "intermediate-valueSlider":
+            data = json.loads(value3)
         return preparePanel(data), json.dumps(data)
 
 
@@ -49,7 +52,7 @@ def register_callbacks(app):
          Input("patient-select", "value")],
     )
     def updateVisualisationLive(n_intervals, patient):
-        #data = get_last_patient_document(int(patient)) pobieranie z bazy zakomentowane
+        #data = get_last_patient_document(int(patient)) #pobieranie z bazy zakomentowane ale do przetestowania
         data = fetchData(patient)
         print(str(datetime.fromtimestamp(data.get("timestamp"))))
        # return json.dumps(data[0])
@@ -59,15 +62,30 @@ def register_callbacks(app):
         [Output("graph", "figure"),
          Output("store", "data")],
         [Input("intermediate-valueLive", "children"),
+         Input("intermediate-valueButtons", "children"),
+         Input("clear-button", "n_clicks"),
          Input("patient-select", "value")],
         [State("store", "data")],
     )
-    def updateGraph(patient, selectedPatient, data):
-        data = data or {'1': [], '2': [], '3': [], '4': [], '5': [], '6': []}
+    def updateGraph(patientLive, patientButton, clear, selectedPatient, data):
+        empty = {'1': [], '2': [], '3': [], '4': [], '5': [], '6': []}
+        data = data or empty
         newList = data[str(selectedPatient)]
-        if (len(newList) >= 6):
-            newList.pop(0)
-        newList.append(json.loads(patient))
+
+        ctx = dash.callback_context
+        input_id = ctx.triggered[0]["prop_id"].split(".")[0]
+        if input_id == "intermediate-valueLive":
+            if (len(newList) >= 6):
+                newList.pop(0)
+            newList.append(json.loads(patientLive))
+        elif input_id == "intermediate-valueButtons":
+            if json.loads(patientButton).get("timestamp") != json.loads(patientLive).get("timestamp"):
+                if (len(newList) >= 6):
+                    newList.pop(0)
+                newList.append(json.loads(patientButton))
+        elif input_id == "clear-button":
+            return {'data': [],'layout' : layout}, empty
+        
         data[str(selectedPatient)] = newList
         return composeGraph(newList), data
     
@@ -78,13 +96,11 @@ def register_callbacks(app):
         
         layout_graph["xaxis"] = dict(range=[min(xList),max(xList)])
         layout_graph["yaxis"] = dict(range=[min(min(yList))-30,max(max(yList))+30])
-        layout_graph["transition"] = {
-               'duration': 500,
-               'easing': 'linear-in-out',
-               "ordering": 'traces first'
-           }
-        # layout_graph = go.Layout(xaxis = dict(range=[min(xList),max(xList)]),
-        #     yaxis = dict(range=[min(min(yList))-30,max(max(yList))+30]))
+        # layout_graph["transition"] = {
+        #        'duration': 500,
+        #        'easing': 'linear-in-out',
+        #        "ordering": 'traces first'
+        #    }
         return {'data': data,'layout' : layout_graph}
 
     def produceData(dataList):
@@ -147,7 +163,9 @@ def register_callbacks(app):
             data = get_previous_data(patientId, patientData.get("timestamp"))[0]
             message = "Visualisation shows previously fetched data"
         elif(button_id == "next-button"):
-            data = get_next_data(patientId, patientData.get("timestamp"))[0]
+            data = get_next_data(patientId, patientData.get("timestamp"))
+            if len(data) >= 1:
+                data = data[0]     
             message = "Visualisation shows next part of previously fetched data"
         elif button_id == "stop-button":
             message = "Visualisation is not updating, click 'Live'"
@@ -167,11 +185,22 @@ def register_callbacks(app):
         return message, disable, json.dumps(data)
 
 
+    @app.callback(
+        [Output('text-slider', 'children'),
+        Output('intermediate-valueSlider', 'children')],
+        [Input('timestamp-slider', 'value')],
+        [State("patient-select", "value")])
+    def update_slider(value, patientId):
+        newTime = time.time() - (10.1 - value)/10.0 * 600
+        newData = get_previous_data(int(patientId), newTime)[0]
+        return '{}'.format(str(datetime.fromtimestamp(newData.get("timestamp"))).split(".")[0]), json.dumps(newData)
+        
+
     mapbox_access_token = "pk.eyJ1IjoiamFja2x1byIsImEiOiJjajNlcnh3MzEwMHZtMzNueGw3NWw5ZXF5In0.fk8k06T96Ml9CLGgKmk81w"
     layout = dict(
-        autosize=True,
-        automargin=True,
-        margin=dict(l=30, r=30, b=20, t=40),
+        #autosize=True,
+        #automargin=True,
+        #margin=dict(l=30, r=30, b=20, t=40),
         hovermode="closest",
         plot_bgcolor="#F9F9F9",
         paper_bgcolor="#F9F9F9",
