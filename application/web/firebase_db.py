@@ -66,9 +66,13 @@ def get_last_patient_document(patient_id):
 
 def get_next_data(patient_id, timestamp):
     database = firestore.client()
-    docs = database.collection('patients').where(u'id', u'==', patient_id).where(u'timestamp', u'>',
-                                                                                 timestamp).order_by(
-        u'timestamp', direction=firestore.Query.ASCENDING).limit(1).stream()
+    docs = database \
+        .collection('patients') \
+        .where(u'id', u'==', patient_id) \
+        .where(u'timestamp', u'>', timestamp) \
+        .order_by(u'timestamp', direction=firestore.Query.ASCENDING) \
+        .limit(1) \
+        .stream()
     docs_obj = []
     for doc in docs:
         docs_obj.append(doc.to_dict())
@@ -77,18 +81,61 @@ def get_next_data(patient_id, timestamp):
 
 def get_previous_data(patient_id, timestamp):
     database = firestore.client()
-    docs = database.collection('patients').where(u'id', u'==', patient_id).where(u'timestamp', u'<',
-                                                                                 timestamp).order_by(
-        u'timestamp', direction=firestore.Query.DESCENDING).limit(1).stream()
+    docs = database \
+        .collection('patients') \
+        .where(u'id', u'==', patient_id) \
+        .where(u'timestamp', u'<', timestamp) \
+        .order_by(u'timestamp', direction=firestore.Query.DESCENDING) \
+        .limit(1) \
+        .stream()
     docs_obj = []
     for doc in docs:
         docs_obj.append(doc.to_dict())
     return docs_obj
 
 
-def get_next_anomaly(patient_id, timeout):
-    pass
+def get_all_patients_data(patient_id):
+    database = firestore.client()
+    docs = database \
+        .collection('patients') \
+        .where(u'id', u'==', patient_id) \
+        .stream()
+    docs_obj = []
+    for doc in docs:
+        docs_obj.append(doc.to_dict())
+    return docs_obj
 
 
-def get_previous_anomaly(patient_id, timeout):
-    pass
+def check_anomaly_in_patients_data(patient_data):
+    for sensor in patient_data['trace']['sensors']:
+        if sensor['anomaly']:
+            return True
+    return False
+
+
+def get_next_anomaly(patient_id, timestamp):
+    patients_data = get_all_patients_data(patient_id)
+    patients_next_anomalies = []
+
+    for p in patients_data:
+        if p['timestamp'] > timestamp and check_anomaly_in_patients_data(p):
+            patients_next_anomalies.append(p)
+
+    patients_next_anomalies = sorted(patients_next_anomalies, key=lambda k: k['timestamp'])
+    print(len(patients_next_anomalies))
+    print(patients_next_anomalies[0] if patients_next_anomalies and len(patients_next_anomalies) > 0 else [])
+    return patients_next_anomalies[0] if patients_next_anomalies and len(patients_next_anomalies) > 0 else []
+
+
+def get_previous_anomaly(patient_id, timestamp):
+    patients_data = get_all_patients_data(patient_id)
+    patients_prev_anomalies = []
+
+    for p in patients_data:
+        if p['timestamp'] < timestamp and check_anomaly_in_patients_data(p):
+            patients_prev_anomalies.append(p)
+
+    patients_prev_anomalies = sorted(patients_prev_anomalies, key=lambda k: k['timestamp'], reverse=True)
+    print(len(patients_prev_anomalies))
+    print(patients_prev_anomalies[0] if patients_prev_anomalies and len(patients_prev_anomalies) > 0 else [])
+    return patients_prev_anomalies[0] if patients_prev_anomalies and len(patients_prev_anomalies) > 0 else []
