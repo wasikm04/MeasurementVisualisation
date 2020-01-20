@@ -1,5 +1,6 @@
 from dash.dependencies import Input, Output, State
-from firebase_db import save_patient_data, get_next_data, get_previous_data, get_next_anomaly, get_previous_anomaly,get_all_patient_documents, get_last_patient_document, save_many_patients_data
+from firebase_db import save_patient_data, get_next_data, get_previous_data, get_next_anomaly, get_previous_anomaly, \
+    get_all_patient_documents, get_last_patient_document, save_many_patients_data
 from layout import *
 from helper import *
 import json
@@ -10,23 +11,22 @@ import plotly
 from datetime import datetime
 import plotly.graph_objs as go
 
-def register_callbacks(app):
 
+def register_callbacks(app):
     @app.callback(Output("placeholder", "children"),
-                [Input("fetch-data", "n_intervals")])
+                  [Input("fetch-data", "n_intervals")])
     def download(value):
         data = []
-        for i in range(1,7):
+        for i in range(1, 7):
             patient = fetchData(i)
             data.append(patient)
         save_many_patients_data(data)
         return ""
 
-
     @app.callback(
         [
-        Output("data-panel", "children"),
-        Output("intermediate-valueLast", "children")
+            Output("data-panel", "children"),
+            Output("intermediate-valueLast", "children")
         ],
         [
             Input("intermediate-valueLive", "children"),
@@ -45,17 +45,16 @@ def register_callbacks(app):
             data = json.loads(value3)
         return preparePanel(data), json.dumps(data)
 
-
     @app.callback(
         Output("intermediate-valueLive", "children"),
         [Input("interval-component", "n_intervals"),
          Input("patient-select", "value")],
     )
     def updateVisualisationLive(n_intervals, patient):
-        #data = get_last_patient_document(int(patient)) #pobieranie z bazy zakomentowane ale do przetestowania
+        # data = get_last_patient_document(int(patient)) #pobieranie z bazy zakomentowane ale do przetestowania
         data = fetchData(patient)
         print(str(datetime.fromtimestamp(data.get("timestamp"))))
-       # return json.dumps(data[0])
+        # return json.dumps(data[0])
         return json.dumps(data)
 
     @app.callback(
@@ -79,40 +78,41 @@ def register_callbacks(app):
                 newList.pop(0)
             newList.append(json.loads(patientLive))
         elif input_id == "intermediate-valueButtons":
-            if json.loads(patientButton).get("timestamp") != json.loads(patientLive).get("timestamp"):
-                if (len(newList) >= 6):
-                    newList.pop(0)
-                newList.append(json.loads(patientButton))
+            if json and json.loads(patientButton) and json.loads(patientLive):
+                if json.loads(patientButton).get("timestamp") != json.loads(patientLive).get("timestamp"):
+                    if (len(newList) >= 6):
+                        newList.pop(0)
+                    newList.append(json.loads(patientButton))
         elif input_id == "clear-button":
-            return {'data': [],'layout' : layout}, empty
-        
+            return {'data': [], 'layout': layout}, empty
+
         data[str(selectedPatient)] = newList
         return composeGraph(newList), data
-    
+
     def composeGraph(dataList):
         layout_graph = layout
         xList, yList = produceData(dataList)
         data = prepareGraphData(xList, yList)
-        
-        layout_graph["xaxis"] = dict(range=[min(xList),max(xList)])
-        layout_graph["yaxis"] = dict(range=[min(min(yList))-30,max(max(yList))+30])
+
+        if xList: layout_graph["xaxis"] = dict(range=[min(xList), max(xList)])
+        if yList: layout_graph["yaxis"] = dict(range=[min(min(yList)) - 30, max(max(yList)) + 30])
         # layout_graph["transition"] = {
         #        'duration': 500,
         #        'easing': 'linear-in-out',
         #        "ordering": 'traces first'
         #    }
-        return {'data': data,'layout' : layout_graph}
+        return {'data': data, 'layout': layout_graph}
 
     def produceData(dataList):
         xList = []
-        tmp = dict([(0,[]),(1,[]),(2,[]),(3,[]),(4,[]),(5,[])])
+        tmp = dict([(0, []), (1, []), (2, []), (3, []), (4, []), (5, [])])
         for obj in dataList:
             xList.append(str(datetime.fromtimestamp(obj.get("timestamp"))).split(" ")[1].split(".")[0])
             data = obj.get("trace").get("sensors")
             for val in data:
                 tmp[val.get("id")].append(val.get("value"))
 
-        return xList, [tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5]]
+        return xList, [tmp[0], tmp[1], tmp[2], tmp[3], tmp[4], tmp[5]]
 
     def prepareGraphData(xList, yList):
         data = []
@@ -123,11 +123,11 @@ def register_callbacks(app):
                 name="Sensor " + str(x),
                 x=xList,
                 y=yList[x],
-                line=dict(shape="spline", color=colors[x]), 
-                marker=dict(symbol="diamond") #, line={"color": colors[x]})
+                line=dict(shape="spline", color=colors[x]),
+                marker=dict(symbol="diamond")  # , line={"color": colors[x]})
             )
             data.append(line)
-        return data    
+        return data
 
     @app.callback(
         [
@@ -144,7 +144,7 @@ def register_callbacks(app):
             Input("prev-anomaly-button", "n_clicks"),
         ],
         [State("patient-select", "value"),
-        State("intermediate-valueLast", "children")],
+         State("intermediate-valueLast", "children")],
     )
     def manageButtons(prev, next, live, stop, next_anomaly, prev_anomaly, patient, data):
         ctx = dash.callback_context
@@ -152,30 +152,29 @@ def register_callbacks(app):
         if data != None:
             data = json.loads(data)
         else:
-            button_id = "live-button"    
+            button_id = "live-button"
         return prepareOutputBasedOnButton(button_id, int(patient), data)
-
 
     def prepareOutputBasedOnButton(button_id, patientId, patientData):
         disable = True
         data = {}
-        if(button_id == "prev-button"):
+        if (button_id == "prev-button"):
             data = get_previous_data(patientId, patientData.get("timestamp"))[0]
             message = "Visualisation shows previously fetched data"
-        elif(button_id == "next-button"):
+        elif (button_id == "next-button"):
             data = get_next_data(patientId, patientData.get("timestamp"))
             if len(data) >= 1:
-                data = data[0]     
+                data = data[0]
             message = "Visualisation shows next part of previously fetched data"
         elif button_id == "stop-button":
             message = "Visualisation is not updating, click 'Live'"
-        elif(button_id == "next-anomaly-button"):
+        elif (button_id == "next-anomaly-button"):
             data = get_next_anomaly(patientId, patientData.get("timestamp"))
             message = "Visualisation shows next saved data with anomaly"
-        elif(button_id == "prev-anomaly-button"):
+        elif (button_id == "prev-anomaly-button"):
             data = get_previous_anomaly(patientId, patientData.get("timestamp"))
-            message = "Visualisation shows previous saved data with anomaly"    
-        elif(button_id == "live-button"):
+            message = "Visualisation shows previous saved data with anomaly"
+        elif (button_id == "live-button"):
             message = "Visualisation shows live updated data"
             disable = False
 
@@ -184,23 +183,21 @@ def register_callbacks(app):
 
         return message, disable, json.dumps(data)
 
-
     @app.callback(
         [Output('text-slider', 'children'),
-        Output('intermediate-valueSlider', 'children')],
+         Output('intermediate-valueSlider', 'children')],
         [Input('timestamp-slider', 'value')],
         [State("patient-select", "value")])
     def update_slider(value, patientId):
-        newTime = time.time() - (10.1 - value)/10.0 * 600
+        newTime = time.time() - (10.1 - value) / 10.0 * 600
         newData = get_previous_data(int(patientId), newTime)[0]
         return '{}'.format(str(datetime.fromtimestamp(newData.get("timestamp"))).split(".")[0]), json.dumps(newData)
-        
 
     mapbox_access_token = "pk.eyJ1IjoiamFja2x1byIsImEiOiJjajNlcnh3MzEwMHZtMzNueGw3NWw5ZXF5In0.fk8k06T96Ml9CLGgKmk81w"
     layout = dict(
-        #autosize=True,
-        #automargin=True,
-        #margin=dict(l=30, r=30, b=20, t=40),
+        # autosize=True,
+        # automargin=True,
+        # margin=dict(l=30, r=30, b=20, t=40),
         hovermode="closest",
         plot_bgcolor="#F9F9F9",
         paper_bgcolor="#F9F9F9",
@@ -214,4 +211,4 @@ def register_callbacks(app):
         #  ),
     )
 
-    colors = dict([(0,"#59C3C3"),(1,"#08ffff"),(2,"#626666"),(3,"#82e81c"),(4,"#70a13f"),(5,"#518c15")])
+    colors = dict([(0, "#59C3C3"), (1, "#08ffff"), (2, "#626666"), (3, "#82e81c"), (4, "#70a13f"), (5, "#518c15")])

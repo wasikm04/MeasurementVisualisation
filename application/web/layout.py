@@ -7,7 +7,6 @@ import time
 from helper import *
 from firebase_db import save_patient_data
 
-
 input_style = {
     "backgroundColor": "transparent",
     "borderRadius": "2rem",
@@ -17,6 +16,7 @@ input_style = {
 
 def generateNavbar():
     return dbc.NavbarSimple(brand="Medical Data Visualisation")
+
 
 
 def generateBody():
@@ -66,13 +66,13 @@ def generateBody():
                 className="mini_container mt-4, h-100",
             ),
             html.Div([dcc.Graph(id="graph"),
-                    dbc.Button(
-                        "Clear",
-                        color="secondary",
-                        id="clear-button",
-                        className="mt-1",
-                    ),
-                    ],
+                      dbc.Button(
+                          "Clear",
+                          color="secondary",
+                          id="clear-button",
+                          className="mt-1",
+                      ),
+                      ],
                      className="mini_container"),
         ]
     )
@@ -106,37 +106,71 @@ def generateControls():
             ),
             dbc.Row(
                 [
-                    dbc.Button(
-                        "Previous",
-                        color="secondary",
-                        id="prev-button",
-                        className="mr-4",
+                    html.Div(
+                        dbc.Button(
+                            "Previous",
+                            color="secondary",
+                            id="prev-button",
+                            className="mr-4, btn-block",
+                        ),
+                        className="btn-container-left"
                     ),
-                    dbc.Button("Next", color="secondary", id="next-button"),
+                    html.Div(
+                        dbc.Button(
+                            "Next",
+                            color="secondary",
+                            id="next-button",
+                            className="btn-block"
+                        ),
+                        className="btn-container-right"
+                    )
                 ],
                 className="mt-2",
-                justify="center",
+                justify="center"
             ),
             dbc.Row(
                 [
-                    dbc.Button(
-                        "Stop", color="secondary", id="stop-button", className="mr-4"
+                    html.Div(
+                        dbc.Button(
+                            "Stop",
+                            color="secondary",
+                            id="stop-button",
+                            className="btn-block"
+                        ),
+                        className="btn-container-left"
                     ),
-                    dbc.Button("Live", color="secondary", id="live-button"),
+                    html.Div(
+                        dbc.Button(
+                            "Live",
+                            color="secondary",
+                            id="live-button",
+                            className="btn-block"
+                        ),
+                        className="btn-container-right"
+                    ),
                 ],
                 className="mt-2",
-                justify="center",
+                justify="center"
             ),
             dbc.Row(
                 [
-                    dbc.Button(
-                        "Previous Anomaly",
-                        color="danger",
-                        id="prev-anomaly-button",
-                        className="mb-2",
+                    html.Div(
+                        dbc.Button(
+                            "Previous Anomaly",
+                            color="danger",
+                            id="prev-anomaly-button",
+                            className="btn-block"
+                        ),
+                        className="anomaly-button"
                     ),
-                    dbc.Button(
-                        "Next Anomaly", color="danger", id="next-anomaly-button"
+                    html.Div(
+                        dbc.Button(
+                            "Next Anomaly",
+                            color="danger",
+                            id="next-anomaly-button",
+                            className="btn-block"
+                        ),
+                        className="anomaly-button"
                     ),
                 ],
                 className="mt-2",
@@ -148,14 +182,14 @@ def generateControls():
                 justify="center",
             ),
             html.Div(
-                [dcc.Slider(id="timestamp-slider", min=0, max=10, step=0.1, value=10, 
-                marks={
-                    0: {'label': '-10 min', 'style': {'color': '#77b0b1'}},
-                    10: {'label': 'Live', 'style': {'color': '#f50'}}
-                })],
+                [dcc.Slider(id="timestamp-slider", min=0, max=10, step=0.1, value=10,
+                            marks={
+                                0: {'label': '-10 min', 'style': {'color': '#77b0b1'}},
+                                10: {'label': 'Live', 'style': {'color': '#f50'}}
+                            })],
                 className="mt-4",
             ),
-             dbc.Row(
+            dbc.Row(
                 [html.H6("", id="text-slider")],
                 className="mt-4",
                 justify="center",
@@ -175,14 +209,14 @@ def preparePanel(json):
                         + " "
                         + json.get("lastname")
                         + "   Date: "
-                        + str(datetime.fromtimestamp(json.get("timestamp"))).split(".")[0]
+                        + str(datetime.fromtimestamp(json.get("timestamp"))).split(".")[0] if json else ""
                     )
                 ],
                 className="md-4",
                 align="center",
                 justify="center",
             ),
-            updateData(json.get("trace").get("sensors")),
+            updateData(json.get("trace").get("sensors") if json else []),
         ],
         className="h-100, mh-100",
     )
@@ -192,17 +226,17 @@ def updateData(sensors):
     return dbc.Container(
         html.Div(
             [
-                dbc.Row(className="mt-4",),
-                dbc.Row(className="mt-4",),
-                dbc.Row(className="mt-4",),
+                dbc.Row(className="mt-4", ),
+                dbc.Row(className="mt-4", ),
+                dbc.Row(className="mt-4", ),
                 dbc.Row(
                     [
                         dbc.Col(
                             dbc.Input(
                                 disabled=True,
                                 id="sensor-0",
-                                value=sensors[0].get("value"),
-                                invalid=sensors[0].get("anomaly") == "true",
+                                value=sensors[0].get("value") if len(sensors) > 0 else '',
+                                invalid=sensors[0].get("anomaly") if len(sensors) > 0 else False,
                                 bs_size="sm",
                                 style=input_style,
                             ),
@@ -212,8 +246,8 @@ def updateData(sensors):
                             dbc.Input(
                                 disabled=True,
                                 id="sensor-3",
-                                value=sensors[3].get("value"),
-                                invalid=sensors[3].get("anomaly") == "true",
+                                value=sensors[3].get("value") if len(sensors) > 3 else '',
+                                invalid=sensors[3].get("anomaly") if len(sensors) > 3 else False,
                                 bs_size="sm",
                                 style=input_style,
                             ),
@@ -228,8 +262,8 @@ def updateData(sensors):
                             dbc.Input(
                                 disabled=True,
                                 id="sensor-1",
-                                value=sensors[1].get("value"),
-                                invalid=sensors[4].get("anomaly") == "true",
+                                value=sensors[1].get("value") if len(sensors) > 1 else '',
+                                invalid=sensors[1].get("anomaly") if len(sensors) > 1 else False,
                                 bs_size="sm",
                                 style=input_style,
                             ),
@@ -239,8 +273,8 @@ def updateData(sensors):
                             dbc.Input(
                                 disabled=True,
                                 id="sensor-4",
-                                value=sensors[4].get("value"),
-                                invalid=sensors[4].get("anomaly") == "true",
+                                value=sensors[4].get("value") if len(sensors) > 4 else '',
+                                invalid=sensors[4].get("anomaly") if len(sensors) > 4 else False,
                                 bs_size="sm",
                                 style=input_style,
                             ),
@@ -248,17 +282,17 @@ def updateData(sensors):
                         ),
                     ],
                 ),
-                dbc.Row(className="mt-5",),
-                dbc.Row(className="mt-5",),
-                dbc.Row(className="mt-5",),
+                dbc.Row(className="mt-5", ),
+                dbc.Row(className="mt-5", ),
+                dbc.Row(className="mt-5", ),
                 dbc.Row(
                     [
                         dbc.Col(
                             dbc.Input(
                                 disabled=True,
                                 id="sensor-2",
-                                value=sensors[2].get("value"),
-                                invalid=sensors[2].get("anomaly") == "true",
+                                value=sensors[2].get("value") if len(sensors) > 2 else '',
+                                invalid=sensors[2].get("anomaly") if len(sensors) > 2 else False,
                                 bs_size="sm",
                                 style=input_style,
                             ),
@@ -268,8 +302,8 @@ def updateData(sensors):
                             dbc.Input(
                                 disabled=True,
                                 id="sensor-5",
-                                value=sensors[5].get("value"),
-                                invalid=sensors[5].get("anomaly") == "true",
+                                value=sensors[5].get("value") if len(sensors) > 5 else '',
+                                invalid=sensors[5].get("anomaly") if len(sensors) > 5 else False,
                                 bs_size="sm",
                                 style=input_style,
                             ),
@@ -278,7 +312,7 @@ def updateData(sensors):
                     ],
                     className="mb-4",
                 ),
-                dbc.Row(className="mt-1",),
+                dbc.Row(className="mt-1", ),
             ],
             style={
                 "backgroundImage": "url(/assets/feets3.jpg)",
@@ -288,4 +322,3 @@ def updateData(sensors):
         ),
         className="h-100, mh-100, mt-10",
     )
-

@@ -141,3 +141,27 @@
     pointer-events: all;
     transform: translate(30px, 349px);
   }
+
+  .btn-container-left {
+       width: 45%;
+       margin-right: 5%;
+  }
+
+  .btn-container-right {
+       width: 45%;
+       margin-left: 5%;
+  }
+
+  .navbar-brand {
+        margin: 0 auto;
+  }
+
+  .anomaly-button {
+       width: 100%;
+       margin-bottom: 10px;
+  }
+
+  nav {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
