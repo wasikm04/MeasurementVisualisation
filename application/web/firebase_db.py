@@ -122,8 +122,8 @@ def get_next_anomaly(patient_id, timestamp):
             patients_next_anomalies.append(p)
 
     patients_next_anomalies = sorted(patients_next_anomalies, key=lambda k: k['timestamp'])
-    print(len(patients_next_anomalies))
-    print(patients_next_anomalies[0] if patients_next_anomalies and len(patients_next_anomalies) > 0 else [])
+    #print(len(patients_next_anomalies))
+    #print(patients_next_anomalies[0] if patients_next_anomalies and len(patients_next_anomalies) > 0 else [])
     return patients_next_anomalies[0] if patients_next_anomalies and len(patients_next_anomalies) > 0 else []
 
 
@@ -136,6 +136,6 @@ def get_previous_anomaly(patient_id, timestamp):
             patients_prev_anomalies.append(p)
 
     patients_prev_anomalies = sorted(patients_prev_anomalies, key=lambda k: k['timestamp'], reverse=True)
-    print(len(patients_prev_anomalies))
-    print(patients_prev_anomalies[0] if patients_prev_anomalies and len(patients_prev_anomalies) > 0 else [])
+    #print(len(patients_prev_anomalies))
+    #print(patients_prev_anomalies[0] if patients_prev_anomalies and len(patients_prev_anomalies) > 0 else [])
     return patients_prev_anomalies[0] if patients_prev_anomalies and len(patients_prev_anomalies) > 0 else []
