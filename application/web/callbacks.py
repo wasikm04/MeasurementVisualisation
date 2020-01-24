@@ -1,16 +1,12 @@
 from dash.dependencies import Input, Output, State
-from firebase_db import save_patient_data, get_next_data, get_previous_data, get_next_anomaly, get_previous_anomaly, \
-    get_all_patient_documents, get_last_patient_document, save_many_patients_data
-from layout import *
+from firebase_db import get_next_data, get_previous_data, get_next_anomaly, get_previous_anomaly, \
+    save_many_patients_data
+from visual.layout import *
 from helper import *
 import json
-import requests
 import dash
-import pandas as pd
-import plotly
 from datetime import datetime
-import plotly.graph_objs as go
-
+from graph_helper import composeGraph
 
 def register_callbacks(app):
     @app.callback(Output("placeholder", "children"),
@@ -51,10 +47,8 @@ def register_callbacks(app):
          Input("patient-select", "value")],
     )
     def updateVisualisationLive(n_intervals, patient):
-        # data = get_last_patient_document(int(patient)) #pobieranie z bazy zakomentowane ale do przetestowania
         data = fetchData(patient)
         print(str(datetime.fromtimestamp(data.get("timestamp"))))
-        # return json.dumps(data[0])
         return json.dumps(data)
 
     @app.callback(
@@ -88,46 +82,6 @@ def register_callbacks(app):
 
         data[str(selectedPatient)] = newList
         return composeGraph(newList), data
-
-    def composeGraph(dataList):
-        layout_graph = layout
-        xList, yList = produceData(dataList)
-        data = prepareGraphData(xList, yList)
-
-        if xList: layout_graph["xaxis"] = dict(range=[min(xList), max(xList)])
-        if yList: layout_graph["yaxis"] = dict(range=[min(min(yList)) - 30, max(max(yList)) + 30])
-        # layout_graph["transition"] = {
-        #        'duration': 500,
-        #        'easing': 'linear-in-out',
-        #        "ordering": 'traces first'
-        #    }
-        return {'data': data, 'layout': layout_graph}
-
-    def produceData(dataList):
-        xList = []
-        tmp = dict([(0, []), (1, []), (2, []), (3, []), (4, []), (5, [])])
-        for obj in dataList:
-            xList.append(str(datetime.fromtimestamp(obj.get("timestamp"))).split(" ")[1].split(".")[0])
-            data = obj.get("trace").get("sensors")
-            for val in data:
-                tmp[val.get("id")].append(val.get("value"))
-
-        return xList, [tmp[0], tmp[1], tmp[2], tmp[3], tmp[4], tmp[5]]
-
-    def prepareGraphData(xList, yList):
-        data = []
-        for x in range(6):
-            line = dict(
-                type="scatter",
-                mode="lines+markers",
-                name="Sensor " + str(x),
-                x=xList,
-                y=yList[x],
-                line=dict(shape="spline", color=colors[x]),
-                marker=dict(symbol="diamond")  # , line={"color": colors[x]})
-            )
-            data.append(line)
-        return data
 
     @app.callback(
         [
@@ -193,8 +147,9 @@ def register_callbacks(app):
         newData = get_previous_data(int(patientId), newTime)[0]
         return '{}'.format(str(datetime.fromtimestamp(newData.get("timestamp"))).split(".")[0]), json.dumps(newData)
 
-    mapbox_access_token = "pk.eyJ1IjoiamFja2x1byIsImEiOiJjajNlcnh3MzEwMHZtMzNueGw3NWw5ZXF5In0.fk8k06T96Ml9CLGgKmk81w"
-    layout = dict(
+
+
+layout = dict(
         # autosize=True,
         # automargin=True,
         # margin=dict(l=30, r=30, b=20, t=40),
@@ -211,4 +166,4 @@ def register_callbacks(app):
         #  ),
     )
 
-    colors = dict([(0, "#59C3C3"), (1, "#08ffff"), (2, "#626666"), (3, "#82e81c"), (4, "#70a13f"), (5, "#518c15")])
+colors = dict([(0, "#59C3C3"), (1, "#08ffff"), (2, "#626666"), (3, "#82e81c"), (4, "#70a13f"), (5, "#518c15")])

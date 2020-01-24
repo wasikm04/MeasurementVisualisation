@@ -1,11 +1,7 @@
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-import dash_bootstrap_components as dbc
 import firebase_admin
-from firebase_admin import db, credentials, firestore
+from firebase_admin import credentials
 from callbacks import *
-from layout import *
+from visual.layout import *
 import os
 
 cred = credentials.Certificate(os.path.dirname(os.path.abspath(__file__)) + "/keys/measurementvisualisation-firebase-adminsdk-t9b3y-97539f3cd1.json")
@@ -33,4 +29,4 @@ app.layout = dbc.Container(
 register_callbacks(app)
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=False)
